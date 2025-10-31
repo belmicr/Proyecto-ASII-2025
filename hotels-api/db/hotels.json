@@ -1,0 +1,29 @@
+[
+  {
+    "id": "h1",
+    "name": "Hotel Sol",
+    "city": "Cordoba",
+    "price_per_night": 50000,
+    "stars": 4,
+    "amenities": ["wifi", "desayuno"],
+    "owner_id": "u1"
+  },
+  {
+    "id": "h2",
+    "name": "Marina Suites",
+    "city": "Mar del Plata",
+    "price_per_night": 75000,
+    "stars": 5,
+    "amenities": ["wifi", "pileta", "spa"],
+    "owner_id": "u2"
+  },
+  {
+    "id": "h3",
+    "name": "Norte Inn",
+    "city": "Salta",
+    "price_per_night": 38000,
+    "stars": 3,
+    "amenities": ["wifi", "estacionamiento"],
+    "owner_id": "u3"
+  }
+]
