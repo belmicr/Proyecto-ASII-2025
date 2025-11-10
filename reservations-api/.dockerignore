@@ -1,0 +1,15 @@
+.git
+*.log
+*.md
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+.DS_Store
+.idea
+.vscode
+bin/
+node_modules/
+ 
+ 

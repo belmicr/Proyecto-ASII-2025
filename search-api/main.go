@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"log"
-	"search/clients_search"
+	queues "search/clients_search"
 	controllers "search/controllers_search"
 	repositories "search/repositories_search"
 	services "search/services_search"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -29,13 +30,13 @@ func main() {
 	})
 
 	// courses API
-	cursosAPI := repositories.NewHTTP(repositories.HTTPConfig{
-		Host: "cursos-api",
+	hotelsAPI := repositories.NewHTTP(repositories.HTTPConfig{
+		Host: "hotels-api",
 		Port: "8081",
 	})
 
 	// Crear instancia del servicio
-	service := services.NewService(solrRepo, cursosAPI)
+	service := services.NewService(solrRepo, hotelsAPI)
 
 	// Iniciar el consumidor y pasarle el servicio
 	if err := eventsQueue.StartConsumer(service); err != nil {

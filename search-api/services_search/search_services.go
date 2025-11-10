@@ -6,46 +6,46 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	cursosDomain "search/domain_search"
+	hotelsDomain "search/domain_search"
 )
 
 // Repository define las funciones que el repositorio debe implementar
 type Repository interface {
-	Index(ctx context.Context, curso cursosDomain.CourseDto) (string, error)
-	Update(ctx context.Context, curso cursosDomain.CourseDto) error
-	Search(ctx context.Context, query string, limit int, offset int) ([]cursosDomain.CourseDto, error)
+	Index(ctx context.Context, curso hotelsDomain.CourseDto) (string, error)
+	Update(ctx context.Context, curso hotelsDomain.CourseDto) error
+	Search(ctx context.Context, query string, limit int, offset int) ([]hotelsDomain.CourseDto, error)
 }
 
 // ExternalRepository define el método para obtener un curso de la API externa
 type ExternalRepository interface {
-	GetCourseByID(ctx context.Context, id string) (cursosDomain.CourseDto, error)
+	GetCourseByID(ctx context.Context, id string) (hotelsDomain.CourseDto, error)
 }
 
 // Service estructura que maneja la lógica del servicio
 type Service struct {
 	repository Repository
-	cursosAPI  ExternalRepository
+	hotelsAPI  ExternalRepository
 }
 
 // NewService inicializa y devuelve un Service
-func NewService(repository Repository, cursosAPI ExternalRepository) Service {
+func NewService(repository Repository, hotelsAPI ExternalRepository) Service {
 	return Service{
 		repository: repository,
-		cursosAPI:  cursosAPI,
+		hotelsAPI:  hotelsAPI,
 	}
 }
 
-// Search realiza una búsqueda de cursos
-func (service Service) Search(ctx context.Context, query string, offset int, limit int) ([]cursosDomain.CourseDto, error) {
-	cursosDAOList, err := service.repository.Search(ctx, query, limit, offset)
+// Search realiza una búsqueda de hotels
+func (service Service) Search(ctx context.Context, query string, offset int, limit int) ([]hotelsDomain.CourseDto, error) {
+	hotelsDAOList, err := service.repository.Search(ctx, query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("error searching courses: %w", err)
 	}
 
-	// Convertir cursosDAOList a cursosDomainList
-	cursosDomainList := make([]cursosDomain.CourseDto, 0)
-	for _, curso := range cursosDAOList {
-		cursosDomainList = append(cursosDomainList, cursosDomain.CourseDto{
+	// Convertir hotelsDAOList a hotelsDomainList
+	hotelsDomainList := make([]hotelsDomain.CourseDto, 0)
+	for _, curso := range hotelsDAOList {
+		hotelsDomainList = append(hotelsDomainList, hotelsDomain.CourseDto{
 			Course_id:    curso.Course_id,
 			Nombre:       curso.Nombre,
 			Profesor_id:  curso.Profesor_id,
@@ -60,20 +60,20 @@ func (service Service) Search(ctx context.Context, query string, offset int, lim
 		})
 	}
 
-	return cursosDomainList, nil
+	return hotelsDomainList, nil
 }
 
-// HandleCourseNew maneja la creación o actualización de cursos
-func (service Service) HandleCourseNew(cursoNew cursosDomain.CourseNew) {
+// HandleCourseNew maneja la creación o actualización de hotels
+func (service Service) HandleCourseNew(cursoNew hotelsDomain.CourseNew) {
 	switch cursoNew.Operation {
 	case "CREATE", "UPDATE":
-		curso, err := service.cursosAPI.GetCourseByID(context.Background(), cursoNew.Curso_id)
+		curso, err := service.hotelsAPI.GetCourseByID(context.Background(), cursoNew.Curso_id)
 		if err != nil {
 			fmt.Printf("Error getting course (%s) from API: %v\n", cursoNew.Curso_id, err)
 			return
 		}
 
-		cursoDAO := cursosDomain.CourseDto{
+		cursoDAO := hotelsDomain.CourseDto{
 			Course_id:    curso.Course_id,
 			Nombre:       curso.Nombre,
 			Profesor_id:  curso.Profesor_id,
@@ -118,7 +118,7 @@ func NewSolrRepository(solrHost, solrPort, coreName string) *SolrRepository {
 }
 
 // Index envía un documento de curso a Solr para indexación
-func (repo *SolrRepository) Index(ctx context.Context, curso cursosDomain.CourseDto) (string, error) {
+func (repo *SolrRepository) Index(ctx context.Context, curso hotelsDomain.CourseDto) (string, error) {
 	doc := map[string]interface{}{
 		"course_id":    curso.Course_id,
 		"nombre":       curso.Nombre,
@@ -163,7 +163,7 @@ func (repo *SolrRepository) Index(ctx context.Context, curso cursosDomain.Course
 }
 
 // Update modifica un documento de curso existente en la colección de Solr
-func (repo *SolrRepository) Update(ctx context.Context, curso cursosDomain.CourseDto) error {
+func (repo *SolrRepository) Update(ctx context.Context, curso hotelsDomain.CourseDto) error {
 	doc := map[string]interface{}{
 		"course_id":    curso.Course_id,
 		"nombre":       curso.Nombre,

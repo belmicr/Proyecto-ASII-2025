@@ -4,8 +4,9 @@ import (
 	"admin-api/client_admin"
 	"admin-api/domain_admin"
 	"fmt"
-	"golang.org/x/net/context"
 	"strings"
+
+	"golang.org/x/net/context"
 )
 
 var dockerClient = client_admin.NewDockerClient()
@@ -23,7 +24,7 @@ func GetServices(ctx context.Context) (domain_admin.ServicesResponse, error) {
 
 	expectedServices := map[string]bool{
 		"search-api":        true,
-		"cursos-api":        true,
+		"hotels-api":        true,
 		"inscripciones-api": true,
 		"users-api":         true,
 	}
