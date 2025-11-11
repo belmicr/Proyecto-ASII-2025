@@ -57,19 +57,18 @@ services:
       - app-network
 
   users-api:
-    image: users-api:latest
-    container_name: users-api-container
     build:
       context: ./users-api
       dockerfile: Dockerfile
+    container_name: users-api-container
     ports:
       - "8080:8080"
-    command: /bin/sh -c "sleep 30 && go run main.go"
     depends_on:
       - memcached
       - mysql
     networks:
       - app-network
+
 
   hotels-api:
     image: hotels-api:latest
