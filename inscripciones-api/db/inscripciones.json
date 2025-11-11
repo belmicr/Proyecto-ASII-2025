@@ -1,0 +1,11 @@
+﻿[
+  {
+    "id": "i1",
+    "hotel_id": "h1",
+    "user_id": "u1",
+    "check_in": "2025-11-10",
+    "check_out": "2025-11-12",
+    "guests": 2,
+    "status": "confirmed"
+  }
+]

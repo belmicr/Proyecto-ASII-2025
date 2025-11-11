@@ -47,7 +47,7 @@ func main() {
 	router.POST("/createHotel", controller.Create)
 	router.PUT("/edit/:id", controller.Update)
 
-	if err := router.Run(":8085"); err != nil { // <<--- cambia el puerto a 8085
+	if err := router.Run(":8081"); err != nil {
 		log.Fatalf("error running application: %v", err)
 	}
 }
