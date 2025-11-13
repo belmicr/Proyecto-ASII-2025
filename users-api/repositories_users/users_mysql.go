@@ -41,31 +41,33 @@ func NewMySQL(config MySQLConfig) MySQL {
 	return MySQL{db: db}
 }
 
-func (repository MySQL) GetUserById(id int64) (users.User, errores.ApiError) {
+func (repository MySQL) GetUserById(id int64) (users.User, error) {
 	var user users.User
+
 	if err := repository.db.First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, errores.NewNotFoundApiError("user not found")
+			return user, fmt.Errorf("user not found")
 		}
-		return user, errores.NewInternalServerApiError("error fetching user by id", err)
+		return user, fmt.Errorf("error fetching user by id: %w", err)
 	}
+
 	return user, nil
 }
 
-func (repository MySQL) GetUserByEmail(email string) (users.User, errores.ApiError) {
+func (repository MySQL) GetUserByEmail(email string) (users.User, error) {
 	var user users.User
 	if err := repository.db.Where("email = ?", email).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, errores.NewNotFoundApiError("user not found")
+			return user, fmt.Errorf("user not found")
 		}
-		return user, errores.NewInternalServerApiError("error fetching user by email", err)
+		return user, fmt.Errorf("error fetching user by email: %w", err)
 	}
 	return user, nil
 }
 
-func (repository MySQL) CreateUser(user users.User) (int64, errores.ApiError) {
+func (repository MySQL) CreateUser(user users.User) (int64, error) {
 	if err := repository.db.Create(&user).Error; err != nil {
-		return 0, errores.NewInternalServerApiError("error creating user", err)
+		return 0, fmt.Errorf("error creating user: %w", err)
 	}
 	return user.User_id, nil
 }
