@@ -115,6 +115,23 @@ services:
     networks:
       - app-network
 
+  reservations-api:
+    image: reservations-api:latest
+    container_name: reservations-api-container
+    build:
+      context: ./reservations-api
+      dockerfile: Dockerfile
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./reservations-api/db:/app/db  
+    # depends_on:
+      #- rabbitmq
+     # - users-api
+      # - hotels-api
+    networks:
+      - app-network
+
   nginx:
     image: nginx:latest
     container_name: nginx-container
@@ -140,3 +157,5 @@ services:
 networks:
   app-network:
     driver: bridge
+
+

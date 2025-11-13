@@ -6,5 +6,5 @@ type RabbitConfig struct {
 
 type Rabbit struct{}
 
-func NewRabbit(_ RabbitConfig) *Rabbit { return &Rabbit{} }
-func (r *Rabbit) Publish(_ any) error  { return nil }
+func NewRabbit(_ RabbitConfig) *Rabbit   { return &Rabbit{} }
+func (r *Rabbit) Publish(_ string) error { return nil }

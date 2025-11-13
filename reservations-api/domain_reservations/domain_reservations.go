@@ -1,28 +1,38 @@
 package domain_reservations
 
-const (
-	StatusPending   = "pending"
-	StatusConfirmed = "confirmed"
-	StatusCancelled = "cancelled"
-)
+import "time"
 
 type Reservation struct {
-	ID       string `json:"id"`
-	HotelID  string `json:"hotel_id"`
-	UserID   string `json:"user_id"`
-	CheckIn  string `json:"check_in"`  // YYYY-MM-DD
-	CheckOut string `json:"check_out"` // YYYY-MM-DD
-	Guests   int    `json:"guests"`
-	Status   string `json:"status"` // "pending", "confirmed", "cancelled"
+	ID         string    `json:"id"`
+	HotelID    string    `json:"hotel_id"`
+	UserID     string    `json:"user_id"`
+	CheckIn    time.Time `json:"check_in"`
+	CheckOut   time.Time `json:"check_out"`
+	Guests     int       `json:"guests"`
+	RoomType   string    `json:"room_type"`
+	TotalPrice float64   `json:"total_price"`
+	Status     string    `json:"status"` // "confirmed", "cancelled", "completed"
+	CreatedAt  time.Time `json:"created_at"`
 }
 
-//Validar el estado
+type Repository interface {
+	Create(r Reservation) (Reservation, error)
+	GetByID(id string) (Reservation, error)
+	GetByUserID(userID string) ([]Reservation, error)
+	List() ([]Reservation, error)
+	Update(id string, r Reservation) (Reservation, error)
+	Delete(id string) error
+	Cancel(id string) (Reservation, error)
+	CheckOverlap(hotelID string, checkIn, checkOut time.Time, excludeID string) (bool, error)
+	SeedFromJSON(path string) error
+}
 
-func IsValidStatus(s string) bool {
-	switch s {
-	case StatusPending, StatusConfirmed, StatusCancelled:
-		return true
-	default:
-		return false
-	}
+type Service interface {
+	Create(r Reservation) (Reservation, error)
+	GetByID(id string) (Reservation, error)
+	GetByUserID(userID string) ([]Reservation, error)
+	List() ([]Reservation, error)
+	Update(id string, r Reservation) (Reservation, error)
+	Delete(id string) error
+	Cancel(id string) (Reservation, error)
 }

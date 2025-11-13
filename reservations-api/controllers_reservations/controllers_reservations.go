@@ -1,106 +1,159 @@
 package controllers_reservations
 
 import (
-	"context"
 	"net/http"
-	"strings"
-
-	"reservations/domain_reservations"
+	domain "reservations/domain_reservations"
 
 	"github.com/gin-gonic/gin"
 )
 
-type Service interface {
-	GetByID(ctx context.Context, id string) (domain_reservations.Reservation, error)
-	List(ctx context.Context, hotelID, userID, status string) ([]domain_reservations.Reservation, error)
-	Create(ctx context.Context, r domain_reservations.Reservation) (domain_reservations.Reservation, error)
-	Update(ctx context.Context, id string, r domain_reservations.Reservation) (domain_reservations.Reservation, error)
+type Controller struct {
+	svc domain.Service
 }
 
-type Controller struct{ s Service }
-
-func NewController(s Service) *Controller { return &Controller{s: s} }
-
-// GET /reservations/:id
-func (c *Controller) GetByID(ctx *gin.Context) {
-	id := strings.TrimSpace(ctx.Param("id"))
-	out, err := c.s.GetByID(ctx.Request.Context(), id)
-	if err != nil {
-		ctx.String(http.StatusNotFound, "not found")
-		return
-	}
-	ctx.JSON(http.StatusOK, out)
+func NewController(svc domain.Service) *Controller {
+	return &Controller{svc: svc}
 }
 
-// GET /reservations?hotel_id=&user_id=&status=
-func (c *Controller) List(ctx *gin.Context) {
-	hotelID := ctx.Query("hotel_id")
-	userID := ctx.Query("user_id")
-	status := ctx.Query("status")
-	out, err := c.s.List(ctx.Request.Context(), hotelID, userID, status)
-	if err != nil {
-		ctx.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	ctx.JSON(http.StatusOK, out)
-}
-
-// POST /createReservation
 func (c *Controller) Create(ctx *gin.Context) {
-	var in domain_reservations.Reservation
-	if err := ctx.ShouldBindJSON(&in); err != nil {
-		ctx.String(http.StatusBadRequest, "bad request")
-		return
-	}
-	// Validaciones mínimas
-	if strings.TrimSpace(in.HotelID) == "" ||
-		strings.TrimSpace(in.UserID) == "" ||
-		strings.TrimSpace(in.CheckIn) == "" ||
-		strings.TrimSpace(in.CheckOut) == "" ||
-		in.Guests <= 0 {
-		ctx.String(http.StatusBadRequest, "invalid reservation payload")
-		return
-	}
-	// Normalizo y valido status
-	if in.Status == "" {
-		in.Status = domain_reservations.StatusPending
-	} else if !domain_reservations.IsValidStatus(strings.ToLower(in.Status)) {
-		ctx.String(http.StatusBadRequest, "invalid status")
+	var req domain.Reservation
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
 		return
 	}
 
-	out, err := c.s.Create(ctx.Request.Context(), in)
+	created, err := c.svc.Create(req)
 	if err != nil {
-		ctx.String(http.StatusInternalServerError, err.Error())
+		status := http.StatusInternalServerError
+
+		// Determinar código de estado apropiado
+		switch err.Error() {
+		case "user not found", "hotel not found":
+			status = http.StatusNotFound
+		case "check-in must be before check-out",
+			"check-in cannot be in the past",
+			"las fechas se solapan con una reserva existente":
+			status = http.StatusBadRequest
+		}
+
+		ctx.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusCreated, out)
+
+	ctx.JSON(http.StatusCreated, created)
 }
 
-// PUT /edit/:id
-func (c *Controller) Update(ctx *gin.Context) {
-	id := strings.TrimSpace(ctx.Param("id"))
+func (c *Controller) GetByID(ctx *gin.Context) {
+	id := ctx.Param("id")
 
-	var in domain_reservations.Reservation
-	if err := ctx.ShouldBindJSON(&in); err != nil {
-		ctx.String(http.StatusBadRequest, "bad request")
-		return
-	}
-	// Validaciones rápidas
-	if in.Guests < 0 {
-		ctx.String(http.StatusBadRequest, "invalid reservation payload")
-		return
-	}
-	// Valido status si vino
-	if in.Status != "" && !domain_reservations.IsValidStatus(strings.ToLower(in.Status)) {
-		ctx.String(http.StatusBadRequest, "invalid status")
-		return
-	}
-
-	out, err := c.s.Update(ctx.Request.Context(), id, in)
+	reservation, err := c.svc.GetByID(id)
 	if err != nil {
-		ctx.String(http.StatusInternalServerError, err.Error())
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "Reservation not found",
+		})
 		return
 	}
-	ctx.JSON(http.StatusOK, out)
+
+	ctx.JSON(http.StatusOK, reservation)
+}
+
+func (c *Controller) List(ctx *gin.Context) {
+	// Si hay user_id query param, filtrar por usuario
+	userID := ctx.Query("user_id")
+
+	if userID != "" {
+		reservations, err := c.svc.GetByUserID(userID)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, reservations)
+		return
+	}
+
+	// Sino, listar todas
+	reservations, err := c.svc.List()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, reservations)
+}
+
+func (c *Controller) Update(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	var req domain.Reservation
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	updated, err := c.svc.Update(id, req)
+	if err != nil {
+		status := http.StatusInternalServerError
+
+		if err.Error() == "reservation not found" {
+			status = http.StatusNotFound
+		} else if err.Error() == "cannot modify cancelled reservation" ||
+			err.Error() == "las fechas se solapan con otra reserva" {
+			status = http.StatusBadRequest
+		}
+
+		ctx.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updated)
+}
+
+func (c *Controller) Delete(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	if err := c.svc.Delete(id); err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "reservation not found" {
+			status = http.StatusNotFound
+		}
+
+		ctx.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Reservation deleted successfully",
+	})
+}
+
+// NUEVO: Endpoint de cancelación
+func (c *Controller) Cancel(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	cancelled, err := c.svc.Cancel(id)
+	if err != nil {
+		status := http.StatusInternalServerError
+
+		if err.Error() == "reservation not found" {
+			status = http.StatusNotFound
+		} else if err.Error() == "reservation already cancelled" ||
+			err.Error() == "cannot cancel reservation that has already started" {
+			status = http.StatusBadRequest
+		}
+
+		ctx.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, cancelled)
 }
