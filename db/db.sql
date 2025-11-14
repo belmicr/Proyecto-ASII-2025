@@ -39,6 +39,18 @@ CREATE TABLE IF NOT EXISTS `archivos`{
     `course_id` int (11) NOT NULL,
     `archivo` blob
     }
+    
+    CREATE TABLE IF NOT EXISTS reservations (
+  id           VARCHAR(32)  PRIMARY KEY,
+  hotel_id     VARCHAR(32)  NOT NULL,
+  user_id      VARCHAR(32)  NOT NULL,
+  check_in     DATE         NOT NULL,
+  check_out    DATE         NOT NULL,
+  guests       INT          NOT NULL,
+  status       VARCHAR(20)  NOT NULL, -- pending | confirmed | cancelled
+  created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 
 CREATE TABLE IF NOT EXISTS `comentarios`{
     `comentario_id` int(11) NOT NULL,

@@ -47,7 +47,7 @@ func main() {
 	router.POST("/createHotel", controller.Create)
 	router.PUT("/edit/:id", controller.Update)
 
-	if err := router.Run(":8081"); err != nil {
+	if err := router.Run(":8085"); err != nil {
 		log.Fatalf("error running application: %v", err)
 	}
 }
