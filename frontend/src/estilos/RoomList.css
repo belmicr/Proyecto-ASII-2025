@@ -1,0 +1,66 @@
+.room-list-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.room-list-container h2 {
+  color: #343a40;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #cce206;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.no-results {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.no-results p {
+  margin-bottom: 20px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding: 20px 0;
+}
+
+.pagination button {
+  padding: 10px 20px;
+  background-color: #343a40;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pagination button:hover {
+  background-color: #000;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination .page-number {
+  padding: 10px 15px;
+  background-color: #cce206;
+  color: #000;
+  border-radius: 6px;
+  font-weight: 600;
+}

@@ -1,0 +1,50 @@
+.my-reservations-container {
+  max-width: 1000px;
+  margin: 50px auto;
+  padding: 30px;
+}
+
+.my-reservations-container h2 {
+  color: #343a40;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #cce206;
+}
+
+.loading {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.no-reservations {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-size: 1.1rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.no-reservations p {
+  margin-bottom: 20px;
+}
+
+.btn-browse {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #cce206;
+  color: #000;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-browse:hover {
+  background-color: #aae06b;
+  transform: translateY(-2px);
+}

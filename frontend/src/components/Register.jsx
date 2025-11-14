@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/api";
-import "../estilos/Login.css";
+import "../estilos/Register.css";
 
-const Login = () => {
+const Register = () => {
   const navigate = useNavigate();
 
-  const [credentials, setCredentials] = useState({
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
+    name: "",
   });
 
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setCredentials({
-      ...credentials,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
     });
   };
@@ -25,10 +26,7 @@ const Login = () => {
     setError("");
 
     try {
-      const data = await authService.login(
-        credentials.email,
-        credentials.password
-      );
+      const data = await authService.register(formData);
 
       
       if (data.error) {
@@ -36,34 +34,40 @@ const Login = () => {
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      navigate("/");
+      alert("Usuario registrado con éxito");
+      navigate("/login");
     } catch (err) {
       console.error(err);
-      setError("Error al iniciar sesión");
+      setError("Error al registrar el usuario");
     }
   };
 
   return (
-    <div className="login-container">
-      <h2>Iniciar sesión</h2>
+    <div className="register-container">
+      <h2>Crear cuenta</h2>
 
       {error && <p className="error">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="login-form">
+      <form onSubmit={handleSubmit} className="register-form">
+        <label>
+          Nombre
+          <input
+            type="text"
+            name="name"
+            placeholder="Tu nombre"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
         <label>
           Email
           <input
             type="email"
             name="email"
             placeholder="tuemail@ejemplo.com"
-            value={credentials.email}
+            value={formData.email}
             onChange={handleChange}
             required
           />
@@ -75,22 +79,22 @@ const Login = () => {
             type="password"
             name="password"
             placeholder="********"
-            value={credentials.password}
+            value={formData.password}
             onChange={handleChange}
             required
           />
         </label>
 
         <button type="submit" className="btn-primary">
-          Entrar
+          Registrarme
         </button>
       </form>
 
       <p className="link">
-        ¿No tenés cuenta? <a href="/register">Registrate</a>
+        ¿Ya tenés cuenta? <a href="/login">Iniciar sesión</a>
       </p>
     </div>
   );
 };
 
-export default Login;
+export default Register;
