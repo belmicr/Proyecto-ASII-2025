@@ -15,4 +15,4 @@ COPY --from=build /app/db /app/db
 EXPOSE 8086
 ENV GIN_MODE=release
 USER nonroot:nonroot
-CMD ["/app/server"]
+ENTRYPOINT ["/app/server"]

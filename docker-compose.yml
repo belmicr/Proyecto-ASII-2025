@@ -10,6 +10,12 @@ services:
       MYSQL_ROOT_PASSWORD: RaTa8855
       MYSQL_DATABASE: users-api
       MYSQL_PASSWORD: RaTa8855
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pRaTa8855"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
     networks:
       - app-network
 
@@ -29,6 +35,12 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
     networks:
       - app-network
 
@@ -42,6 +54,12 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: root
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
     networks:
       - app-network
 
@@ -64,11 +82,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - memcached
-      - mysql
+      mysql:
+        condition: service_healthy
+      memcached:
+        condition: service_started
     networks:
       - app-network
-
 
   hotels-api:
     image: hotels-api:latest
@@ -80,8 +99,10 @@ services:
       - "8081:8081"
     command: /bin/sh -c "sleep 50 && go run main.go"
     depends_on:
-      - mongo
-      - rabbitmq
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -95,23 +116,10 @@ services:
       - "8082:8082"
     command: /bin/sh -c "sleep 30 && go run main.go"
     depends_on:
-      - rabbitmq
-      - solr
-    networks:
-      - app-network
-
-
-  inscripcion-api:
-    image: inscripciones-api:latest
-    container_name: inscripciones-api-container
-    build:
-      context: ./inscripciones-api
-      dockerfile: Dockerfile
-    ports:
-      - "8083:8083"
-    command: /bin/sh -c "sleep 30 && go run main.go"
-    depends_on:
-      - mysql
+      rabbitmq:
+        condition: service_healthy
+      solr:
+        condition: service_started
     networks:
       - app-network
 
@@ -124,11 +132,15 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - ./reservations-api/db:/app/db  
-    # depends_on:
-      #- rabbitmq
-     # - users-api
-      # - hotels-api
+      - ./reservations-api/db:/app/db
+    command: /bin/sh -c "sleep 60 && go run main.go"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      users-api:
+        condition: service_started
+      hotels-api:
+        condition: service_started
     networks:
       - app-network
 
@@ -144,7 +156,6 @@ services:
     networks:
       - app-network
 
-
   frontend:
     build: ./frontend
     ports:
@@ -157,5 +168,3 @@ services:
 networks:
   app-network:
     driver: bridge
-
-
